@@ -1,0 +1,416 @@
+FORMAT: 1A
+HOST: https://quanti.cz/api/v1/
+
+# Quanti API
+
+This is the Quanti sample API for learning purposes.
+
+# Data Structures
+
+## AuthRequest (object)
++ username: "hrabalo" (string, required)
++ password: "123456" (string, required)
+
+## AuthResponse (object)
++ token: "fc7ef14ba27e29c89ec640cec3b91fb374db9b5abaa5e4699680c8c561bd9f5a" (string, required)
++ validity: "2015-09-09T21:58:31+02:00" (string, required)
+
+## UserListResponse (object)
++ users: UserResponse (array, required)
+
+## UserResponse (object)
++ id: 1 (number, required)
++ username: "hrabalo" (string, required)
++ role: "ADMIN" (string, required)
+
+## UserRequest (object)
++ username: "hrabalo" (string, required)
++ role: "ADMIN" (string, required)
+
+# Group Authentication
+The authentication resources can be used for **log in** and **log out** the User to the application.
+
+## /authentication
+The authentication resource contains **POST** web service for the User authentication and the **DELETE** web service for the User logout. 
+
+### Authenticate an User [POST]
+Logs the User in and returns the private API token key with its validity.
+
++ Request (application/json)
+    + Attributes (AuthRequest)
+    
+    + Schema
+    
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "title": "AuthenticationRequestSchema",
+                "required": ["username", "password"],
+                "additionalProperties": false,
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "description": "The username of the User who wants to log in.",
+                        "minLength": 3,
+                        "maxLength": 50
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "The password of the User who wants to log in.",
+                        "minLength": 6,
+                        "maxLength": 50
+                    }
+                }
+            }
+
+    + Body
+    
+            {
+                "username": "hrabalo",
+                "password": "123456"
+            }
+
++ Response 200 (application/json)
+
+    + Attributes (AuthResponse)
+
+    + Header
+    
+            X-Time: 2014-09-11T17:02:27.761+02:00
+    
+    + Schema
+    
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "title": "AuthenticationResponseSchema",
+                "required": ["token", "validity"],
+                "additionalProperties": false,
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "description": "The API token for identity verification.",
+                        "minLength": 64,
+                        "maxLength": 64
+                    },
+                    "validity": {
+                        "type": "string",
+                        "description": "The token validity in the ISO8601 datetime format.",
+                        "minLength": 25,
+                        "maxLength": 25
+                    }
+                }
+            }
+    
+    + Body
+
+            {
+                "token": "fc7ef14ba27e29c89ec640cec3b91fb374db9b5abaa5e4699680c8c561bd9f5a",
+                "validity": "2015-09-09T21:58:31+02:00"
+            }
+
++ Response 400
++ Response 401
++ Response 403
++ Response 404
++ Response 405
++ Response 406
++ Response 500
++ Response 503
+
+### Log out the User [DELETE]
+Logs out the User identified by the X-Api-Key header value.
+
++ Request (application/json)
+    + Header
+    
+            X-Api-Key: <your-private-token-key>
+
++ Response 204 (application/json)
+
+    + Header
+    
+            X-Time: 2014-09-11T17:02:27.761+02:00
+        
++ Response 401
++ Response 403
++ Response 404
++ Response 405
++ Response 406
++ Response 500
++ Response 503
+
+# Group User
+The User resources can be used for managing Users.
+
+## /users
+
+### List All Users [GET]
+Returns the User collection.
+
++ Request (application/json)
+    + Header
+    
+            X-Api-Key: <your-private-token-key>
+
++ Response 200 (application/json)
+
+    + Attributes (UserListResponse)
+    
+    + Schema
+    
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "title": "UserListResponseSchema",
+                "required": ["users"],
+                "additionalProperties": false,
+                "users": {
+                    "type": "array",    
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "username", "role"],
+                        "properties": {
+                            "id": {
+                                "type": "number",
+                                "description": "The unique User identifier.",
+                                "minLength": 1,
+                                "maxLength": 16
+                            },
+                            "username": {
+                                "type": "string",
+                                "description": "The username of the User.",
+                                "minLength": 3,
+                                "maxLength": 50
+                            },
+                            "role": {
+                                "enum": ["ADMIN", "USER"],
+                                "description": "The User role."
+                            }
+                        }
+                    }
+            }
+
+    + Header
+    
+            X-Time: 2014-09-11T17:02:27.761+02:00
+            
+    + Body
+    
+            {
+                "users": [
+                    {
+                        "id": 1,
+                        "username": "hrabalo",
+                        "role": "ADMIN"
+                    },
+                    {
+                        "id": 2,
+                        "username": "chloupekm",
+                        "role": "USER"
+                    }
+                ]
+            }
+
++ Response 401
++ Response 403
++ Response 404
++ Response 405
++ Response 406
++ Response 500
++ Response 503
+
+### Create a New User [POST]
+Creates a New User and returns his unique resource URL in the Location header.
+
++ Request (application/json)
+
+    + Header
+    
+            X-Api-Key: <your-private-token-key>
+            
+    + Attributes (UserRequest)
+    
+    + Schema
+
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "title": "UserRequestSchema",
+                "required": ["username", "role"],
+                "additionalProperties": false,
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "description": "The username of the User.",
+                        "minLength": 3,
+                        "maxLength": 50
+                    },
+                    "role": {
+                        "enum": ["ADMIN", "USER"],
+                        "description": "The User role."
+                    }
+                }
+            }
+            
+    + Body
+    
+            {
+                "username": "hrabalo",
+                "role": "ADMIN"
+            }
+
++ Response 201 (application/json)
+
+    + Headers
+
+            X-Time: 2014-09-11T17:02:27.761+02:00
+            Location: /users/1
+            
++ Response 401
++ Response 403
++ Response 404
++ Response 405
++ Response 406
++ Response 500
++ Response 503
+
+## /users/{id}
+
++ Parameters
+    + id (required, number, `1`) ... The unique User identifier.
+
+### List the User [GET]
+Returns the User by the unique User ID identifier. 
+
++ Request (application/json)
+    + Header
+    
+            X-Api-Key: <your-private-token-key>
+            
+            
++ Response 200 (application/json)
+
+    + Attributes (UserResponse)
+    
+    + Schema
+    
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "title": "UserResponseSchema",
+                "required": ["id", "username", "role"],
+                "additionalProperties": false,
+                "properties": {
+                    "id": {
+                        "type": "number",
+                        "minLength": 1,
+                        "maxLength": 16
+                    },
+                    "username": {
+                        "type": "string",
+                        "description": "The username of the User.",
+                        "minLength": 3,
+                        "maxLength": 50
+                    },
+                    "role": {
+                        "enum": ["ADMIN", "USER"],
+                        "description": "The User role."
+                    }
+                }
+            }
+
+    + Header
+    
+            X-Time: 2014-09-11T17:02:27.761+02:00
+            
+    + Body
+    
+            {
+                "id": 1,
+                "username": "hrabalo",
+                "role": "ADMIN"
+            }
+
++ Response 401
++ Response 403
++ Response 404
++ Response 405
++ Response 406
++ Response 500
++ Response 503
+
+### Edit the User [PUT]
+Edits the User by the unique User ID identifier.
+
++ Request (application/json)
+    + Header
+    
+            X-Api-Key: <your-private-token-key>
+            
+    + Attributes (UserRequest)
+    
+    + Schema
+
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "title": "UserRequestSchema",
+                "required": ["username", "role"],
+                "additionalProperties": false,
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "description": "The username of the User.",
+                        "minLength": 3,
+                        "maxLength": 50
+                    },
+                    "role": {
+                        "enum": ["ADMIN", "USER"],
+                        "description": "The User role."
+                    }
+                }
+            }
+            
+    + Body
+    
+            {
+                "username": "hrabalo",
+                "role": "ADMIN"
+            }
+            
++ Response 204 (application/json)
+
+    + Header
+
+            X-Time: 2014-09-11T17:02:27.761+02:00
+            
++ Response 401
++ Response 403
++ Response 404
++ Response 405
++ Response 406
++ Response 500
++ Response 503
+
+### Delete the User [DELETE]
+Deletes the User identified by the X-Api-Key header value.
+
++ Request (application/json)
+    + Header
+    
+            X-Api-Key: <your-private-token-key>
+
++ Response 204 (application/json)
+
+    + Header
+    
+            X-Time: 2014-09-11T17:02:27.761+02:00
+        
++ Response 401
++ Response 403
++ Response 404
++ Response 405
++ Response 406
++ Response 500
++ Response 503
